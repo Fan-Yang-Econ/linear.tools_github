@@ -9,6 +9,7 @@ output:
     highlight: tango
     keep_md: yes
     number_sections: yes
+    self_contained: no
     theme: united
     toc: yes
 vignette: >
