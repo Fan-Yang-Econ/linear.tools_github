@@ -1,0 +1,243 @@
+---
+title: <center> <h1> linear.tools </h1> </center> <center> <h1>  </h1> </center>
+author: </center> <font size="4">Fan Yang</font> </center> 
+email: </center> <font size="4">yfno1\@msn.com</font> </center> 
+date: 2015-08-10 <center> <h1>  </h1> </center> 
+output: 
+  html_document:
+    toc: true # table of content true
+    depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: true  ## if you want number sections at each table header
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+vignette: >
+  %\VignetteIndexEntry{linear.tools vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+
+---
+
+<center> <h1>  </h1> </center> 
+
+This package has two parts: 
+
+  * The first part provides tools to manipulate formulas.
+  * The second part provides functions to evaluate and check the marginal impacts of a linear model.
+
+```{r, echo=F, message=FALSE, warning=FALSE}
+library(knitr)
+opts_chunk$set(
+  fig.width=5, 
+  fig.height=3
+)
+
+library(linear.tools)
+# source("/Users/yangguodaxia/Dropbox/Tech/R/linear_tools_origin.R")
+
+```
+
+
+# First Part: Manipulate formulas
+### different forms of x
+
+Variables in R's linear formula/model can have different forms:
+
+  1.  Model variables, the items showed up directly in the formula, separated by the '+' sign.
+  2.  Raw variables, the underlying variables used.
+  3.  Coefficient variables, the coefficient names; note that un-evaluated formulas don't have those variables.
+
+### model variables: `get_x(formula/model,'coeff')`
+```{r}
+data = ggplot2::diamonds
+diamond_lm  =  lm(log(price)~  I(carat^   2) + cut  + carat + table + carat:table, data)
+```
+
+At the first sight, the linear model above contains 5  variables:
+
+* I(carat^   2)
+* cut
+* carat
+* table
+* carat:table
+
+In linear.tools we call them *model* variables and can access them using function `get_x(.,'model')`:
+
+```{r}
+get_x(diamond_lm,'model')
+```
+
+
+Note that in the original formula, there are redundant spaces 'I(carat^   2)'; in `get_x(.,'model')` we deleted them.
+
+### raw variables: `get_x(formula/model,'coeff')`
+
+Sometimes you want to get the underlying raw variables used in the formula, which are
+
+* carat (the underlying variable for I(carat^   2))
+* cut
+* carat
+* table
+
+In linear.tools we call them *raw* variables and can access them using function `get_x(.,'raw')`:
+
+```{r}
+get_x(diamond_lm,'raw')
+```
+
+`get_x(.,'model')` will show the linkage between model variables and raw variables: it will return a list with names as model variables and elements as their corresponding raw variables.
+```{r}
+get_model_pair(diamond_lm, data, 'raw')
+```
+
+
+### coefficient variables: `get_x(model,'coeff')`
+
+Sometimes you want the the coefficient names of the model
+
+```{r}
+get_x(diamond_lm,'coeff')
+```
+
+
+You may also want to see how 'model' variables are linked with 'coeff' variables: `get_x(.,'coeff')` will return a list with names as model variables and elements as their corresponding coeff variables.
+
+```{r}
+get_model_pair(diamond_lm, data, 'coeff')
+```
+
+
+
+
+
+### link different forms of x: `get_x_all(model)`
+
+The `get_x_all()` function will return a data.frame showing all the model variables and their corresponding raw & coefficient variables.
+
+```{r}
+get_x_all(model = diamond_lm)
+```
+
+
+### get y : `get_y(formula/model)`
+
+```{r}
+get_y(diamond_lm,'raw')
+get_y(diamond_lm,'model')
+```
+
+
+## contrast: get_contrast(model)
+
+Contrasts are how categorical variables show up in coefficients.
+
+When R evaluate categorical variables in the linear model, R will transform them into sets of 'contrasts' using certain contrast encoding schedule. See [UCLA idre](http://www.ats.ucla.edu/stat/r/library/contrast_coding.htm) for details.
+
+For example, for categorical variable 'cut' in the above model, we can get its contrasts through function `get_contrast`
+
+```{r}
+# get_contrast will return a list with each element as the contrasts of a categorical variable in the model
+get_contrast(diamond_lm)
+```
+
+You can also return the contrast method.
+```{r}
+get_contrast(diamond_lm, return_method = T)
+```
+
+
+# Second Part: Evaluate Marginal Effect
+
+In formula `y ~ a + I(a^2) + b`, We define 'Marginal Effect' of `a` on `y` as: fixing `b`, how the change of `a` will affect value of `y`. Note that the marginal effect here is not just the coefficients for `a` and `I(a^2)`, neither the sum.
+
+### evaluate marginal effect: `effect`
+We provide a easy tool to show the marginal effect and check its monotonicity. The example below will evaluate how the `carat` of the diamond will affect its `price` in a particular model.
+
+
+```{r }
+# more carats, higher price.
+diamond_lm3 = lm(price~  carat + I(carat^2) + I(carat^3) , ggplot2::diamonds) # a GLM
+
+test1 = effect(model = diamond_lm3, focus_var_raw = c('carat'), focus_value =list(carat = seq(0.5,1,0.1))) 
+test1$Monoton_Increase
+```
+You can see that the model did a good job to model monotonic increasing relations between `carat` and `price` when `carat` ranges from 0.5 to 1 (`$Monoton_Increase` is `True`).
+
+PS: A more interesting case is that, if you interact `carat` with the categorical variable `cut`, you can examine the marginal effects `carat` under different categories of `cut`
+```{r}
+test_interaction = effect(model = lm(price~  carat*cut + I(carat^2)*cut, ggplot2::diamonds), 
+       focus_var_raw = c('carat','cut'), focus_value =list(carat = seq(0.5,1,0.1))
+       ) 
+```
+
+
+However, in the model `diamond_lm3` when we let the `carat` ranges from 0.5 to 6, the model failed to get the monotonic increasing relations: in the model below, when carat is larger than 3 approximately, the higher the carat, the lower the price!
+  
+```{r}
+test2 = effect(model = diamond_lm3, focus_var_raw = c('carat'), focus_value =list(carat = seq(0.5,6,0.1))) 
+test2$Monoton_Increase
+```
+
+
+### delete the marginal effect and re-evaluate
+
+When a model has a wrong marginal effect, we can use function `deleting_wrongeffect` to delete a model variable that potentially causes the wrong marginal impacts and then re-estimate the model. This function can keep doing this until the correct marginal impacts are found.
+
+The example below will
+
+  * first test the marginal effect of carat on price, which is supposed to be monotonic increasing.
+  * then as it finds incorrect marginal effect, it will delete one model variable that contains `carat` in the most right, and then recheck the marginal effect.
+  * It will keep doing the same thing until the marginal effect is correct, or all model variables containing `carat` are deleted.
+
+```{r }
+
+model_correct_effect = deleting_wrongeffect(model = diamond_lm3,
+                                            focus_var_raw = 'carat',
+                                            focus_value = list(carat=seq(0.5,6,0.1)),
+                                            data = ggplot2::diamonds,
+                                            PRINT = T,STOP =F, PLOT = T,
+                                            Reverse = F)
+model_correct_effect
+```
+
+### stepwise regression with correct marginal effect
+
+Stepwise regression is popular in variable selection, but it failed to consider the correctness of marginal effects. `stepwise2` enables checking the marginal effects during each step of iteration in stepwise regression; so in each step we will skip those models with wrong marginal effects, and only only choose models among those that have correct marginal effect.
+
+The example below is to use stepwise regression to find the model with highest BIC and with the correct marginal effect.
+
+```{r}
+scope = list(lower = price ~ 1,
+             upper = price ~  carat + I(carat^2) + I(carat^3) + I(carat * depth) + depth)
+
+
+### specify the correct marginal effect here
+test_suit = list(
+  carat = list( # the list name must be the raw var
+    focus_var_raw = "carat", # must specify the focus_var_raw (see deleting_wrongeffect() ) as the raw var
+    focus_value = list(carat=seq(0.5,6,0.1))
+  )
+)
+
+model_correct_effect =  stepwise2(model = diamond_lm3, scope = scope, trace = T,
+                                  data = ggplot2::diamonds, STOP = F, test_suit = test_suit)
+# the returned model
+model_correct_effect
+
+```
+
+### compare with `step`
+The model using `stepwise2` got correct marginal effect:
+
+```{r}
+test_model_correct_effect = effect(model = model_correct_effect, focus_var_raw = c('carat'), focus_value =list(carat = seq(0.5,6,0.1))) 
+```
+
+whereas the model using traditional algorithm `step` got wrong marginal effect:
+  
+```{r }
+model_wrong_effect =  step(diamond_lm3, scope = scope, trace = F, data = ggplot2::diamonds)
+model_wrong_effect
+test_wrong_effect = effect(model_wrong_effect, focus_var_raw = c('carat'), focus_value =list(carat = seq(0.5,6,0.1))) 
+```
+
+
