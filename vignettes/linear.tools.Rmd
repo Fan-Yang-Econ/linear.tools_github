@@ -5,16 +5,16 @@ email: </center> <font size="4">yfno1\@msn.com</font> </center>
 date: 2015-08-10 <center> <h1>  </h1> </center> 
 output: 
   html_document:
-    toc: true # table of content true
-    depth: 3  # upto three depths of headings (specified by #, ## and ###)
-    number_sections: true  ## if you want number sections at each table header
-    theme: united  # many options for theme, this one is my favorite.
-    highlight: tango  # specifies the syntax highlighting style
+    depth: 3
+    highlight: tango
+    keep_md: yes
+    number_sections: yes
+    theme: united
+    toc: yes
 vignette: >
   %\VignetteIndexEntry{linear.tools vignette}
-  %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
-
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 <center> <h1>  </h1> </center> 
