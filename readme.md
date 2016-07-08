@@ -4,6 +4,25 @@
 
 <center> <h1>  </h1> </center> 
 
+Abstract:
+
+This packages enables "marginal effect regularization" in stepwise algorithm.
+
+Traditional machine learning algorithms only try to achieve lowest loss or max likelihood, they did not bring economic theory or business justification into the iteration process of searching the best model. 
+
+That means, a feature with wrong marginal impact on the dependent may be selected solely based on statistical soundness, despite that is contradictory to economic theory.
+
+This package enables specifying and checking the correctness of marginal effect during the iteration of stepwise algorithm. Thus you can put the direction of marginal effect justified by pre-defined economic theory as constraint in the process of searching best model.
+
+
+<center> <h1>  </h1> </center> 
+
+
+
+
+
+
+
 This package has two parts: 
 
   * The first part provides tools to manipulate formulas.
