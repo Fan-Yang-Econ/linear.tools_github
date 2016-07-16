@@ -8,11 +8,10 @@ Abstract:
 
 This package enables "marginal effect regularization" in stepwise algorithm.
 
-Traditional machine learning algorithms only try to achieve lowest loss or max likelihood, they did not bring economic theory or business justification into the iteration process of searching the best model. 
+Traditional machine learning algorithms only try to achieve lowest loss or max likelihood; they did not bring prior knowledge of economic theory or business justification into model learning.
+That means, a feature with a wrong marginal impact on the dependent may be selected solely based on statistical soundness, despite that is contradictory to economic theory.
 
-That means, a feature with wrong marginal impact on the dependent may be selected solely based on statistical soundness, despite that is contradictory to economic theory.
-
-This package enables specifying and checking the correctness of marginal effect during the iteration of stepwise algorithm. Thus you can put the direction of marginal effect justified by pre-defined economic theory as constraint in the process of searching best model.
+This package enables one to put the direction or relative magnitude of marginal effect as constraints in the iteration process of stepwise algorithm, thus bringing prior knowledge of marginal effect into model learning. 
 
 
 <center> <h1>  </h1> </center> 
