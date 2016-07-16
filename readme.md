@@ -6,7 +6,7 @@
 
 Abstract:
 
-This packages enables "marginal effect regularization" in stepwise algorithm.
+This package enables "marginal effect regularization" in stepwise algorithm.
 
 Traditional machine learning algorithms only try to achieve lowest loss or max likelihood, they did not bring economic theory or business justification into the iteration process of searching the best model. 
 
